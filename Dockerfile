@@ -1,14 +1,14 @@
 # Sử dụng base image Alpine Linux 3.19 nhỏ gọn
 FROM alpine:3.19
 
-# Đặt các phiên bản cố định của công cụ tại đây
+# Đặt các phiên bản CỐ ĐỊNH của công cụ tại đây để đảm bảo ổn định
 ENV WGCF_VERSION=v2.2.26
-ENV WIREPROXY_VERSION=v1.1.4
+ENV WIREPROXY_VERSION=v1.0.9
 ENV GOST_VERSION=v3.0.0-rc9
 
 # Cài đặt các gói cần thiết và các công cụ từ URL đã chỉ định
 RUN \
-    # Bước 1: Cài đặt curl. Không cần jq nữa.
+    # Bước 1: Cài đặt curl
     apk add --no-cache curl && \
     \
     # Bước 2: Xác định kiến trúc của hệ thống
@@ -21,13 +21,13 @@ RUN \
     \
     # Bước 3: Tải WGCF từ URL cố định
     echo "Dang tai WGCF phien ban ${WGCF_VERSION}..." && \
-    # Cú pháp ${WGCF_VERSION#v} dùng để xóa chữ 'v' ở đầu (v2.2.26 -> 2.2.26)
     curl -fsSL "https://github.com/ViRb3/wgcf/releases/download/${WGCF_VERSION}/wgcf_${WGCF_VERSION#v}_linux_${ARCH}" -o /usr/bin/wgcf && \
     chmod +x /usr/bin/wgcf && \
     \
-    # Bước 4: Tải WireProxy từ URL cố định
-    echo "Dang tai WireProxy phien ban ${WIREPROXY_VERSION}..." && \
-    curl -fsSL "https://github.com/whyvl/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy-linux-${ARCH}" -o /usr/bin/wireproxy && \
+    # Bước 4: Tải WireProxy v1.0.9 từ 'whyvl/wireproxy' (theo link bạn cung cấp)
+    echo "Dang tai WireProxy phien ban ${WIREPROXY_VERSION} tu repo 'whyvl'..." && \
+    # Lưu ý: Phiên bản v1.0.9 này là file .tar.gz và có dấu gạch dưới '_'
+    curl -fsSL "https://github.com/whyvl/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy_linux_${ARCH}.tar.gz" | tar -xz -C /usr/bin/ wireproxy && \
     chmod +x /usr/bin/wireproxy && \
     \
     # Bước 5: Tải GOST từ URL cố định
