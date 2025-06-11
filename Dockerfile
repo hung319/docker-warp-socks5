@@ -16,7 +16,6 @@ RUN \
     \
     # Bước 3: Tải và cài đặt wgcf
     echo "Dang tim URL tai ve cho wgcf (kien truc ${ARCH})..." && \
-    # SỬA LỖI: Đặt dấu " kết thúc lệnh jq TRƯỚC khi pipe qua head
     WGCF_URL=$(curl -fsSL https://api.github.com/repos/ViRb3/wgcf/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"_linux_${ARCH}\") and (contains(\".zip\") | not))" | head -n 1) && \
     if [ -z "${WGCF_URL}" ]; then \
         echo "LỖI: Không tìm thấy URL tải về cho wgcf!" >&2; \
@@ -26,22 +25,19 @@ RUN \
     curl -fsSL "${WGCF_URL}" -o /usr/bin/wgcf && \
     chmod +x /usr/bin/wgcf && \
     \
-    # Bước 4: Tải và cài đặt wireproxy (phiên bản cố định)
-    echo "Dang chuan bi tai ve wireproxy v1.1.2 (kien truc ${ARCH})..." && \
-    WIREPROXY_VERSION="v1.1.2" && \
-    case ${ARCH} in \
-        "amd64") WIREPROXY_URL="https://github.com/pufferffish/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy_linux_amd64.tar.gz" ;; \
-        "arm64") WIREPROXY_URL="https://github.com/pufferffish/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy_linux_arm64.tar.gz" ;; \
-        "386") WIREPROXY_URL="https://github.com/pufferffish/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy_linux_386.tar.gz" ;; \
-        *) echo "LỖI: Kiến trúc ${ARCH} không được wireproxy hỗ trợ." >&2; exit 1 ;; \
-    esac && \
+    # Bước 4: Tải wireproxy từ fork 'whyvl/wireproxy' do bạn chỉ định
+    echo "Dang tim URL tai ve cho wireproxy (kien truc ${ARCH})..." && \
+    WIREPROXY_URL=$(curl -fsSL https://api.github.com/repos/whyvl/wireproxy/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}\") and contains(\".tar.gz\"))" | head -n 1) && \
+    if [ -z "${WIREPROXY_URL}" ]; then \
+        echo "LỖI: Không tìm thấy URL tải về cho wireproxy từ fork whyvl!" >&2; \
+        exit 1; \
+    fi && \
     echo "Dang tai wireproxy tu ${WIREPROXY_URL}" && \
     curl -fsSL "${WIREPROXY_URL}" | tar -xz -C /usr/bin/ && \
     chmod +x /usr/bin/wireproxy && \
     \
     # Bước 5: Tải và cài đặt GOST
     echo "Dang tim URL tai ve cho GOST (kien truc ${ARCH})..." && \
-    # SỬA LỖI: Đặt dấu " kết thúc lệnh jq TRƯỚC khi pipe qua head
     GOST_URL=$(curl -fsSL https://api.github.com/repos/go-gost/gost/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}.tar.gz\"))" | head -n 1) && \
     if [ -z "${GOST_URL}" ]; then \
         echo "LỖI: Không tìm thấy URL tải về cho GOST!" >&2; \
@@ -51,9 +47,10 @@ RUN \
     curl -fsSL "${GOST_URL}" | tar -xz -C /usr/bin/ gost && \
     chmod +x /usr/bin/gost
 
-# Sao chép các script cần thiết vào image
+# Sao chép các script cần thiết vào image (Sửa lại cho nhất quán đường dẫn)
 ADD entrypoint.sh /usr/local/bin/entrypoint.sh
 ADD warp-health-check.sh /usr/local/bin/warp-health-check.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/warp-health-check.sh
 
 # Mở cổng proxy
 EXPOSE 40000/tcp
@@ -61,6 +58,6 @@ EXPOSE 40000/tcp
 # Chỉ định script khởi động mặc định
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# Cấu hình kiểm tra sức khỏe của container
+# Cấu hình kiểm tra sức khỏe của container (Sửa lại cho nhất quán đường dẫn)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD [ "/usr/local/bin/warp-health-check.sh" ]
