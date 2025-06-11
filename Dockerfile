@@ -24,9 +24,8 @@ RUN \
     curl -fsSL "https://github.com/ViRb3/wgcf/releases/download/${WGCF_VERSION}/wgcf_${WGCF_VERSION#v}_linux_${ARCH}" -o /usr/bin/wgcf && \
     chmod +x /usr/bin/wgcf && \
     \
-    # Bước 4: Tải WireProxy v1.0.9 từ 'whyvl/wireproxy' (theo link bạn cung cấp)
+    # Bước 4: Tải WireProxy v1.0.9 từ 'whyvl/wireproxy'
     echo "Dang tai WireProxy phien ban ${WIREPROXY_VERSION} tu repo 'whyvl'..." && \
-    # Lưu ý: Phiên bản v1.0.9 này là file .tar.gz và có dấu gạch dưới '_'
     curl -fsSL "https://github.com/whyvl/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy_linux_${ARCH}.tar.gz" | tar -xz -C /usr/bin/ wireproxy && \
     chmod +x /usr/bin/wireproxy && \
     \
@@ -40,8 +39,8 @@ ADD entrypoint.sh /usr/local/bin/entrypoint.sh
 ADD warp-health-check.sh /usr/local/bin/warp-health-check.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/warp-health-check.sh
 
-# Mở cổng proxy
-EXPOSE 40000/tcp
+# Mở cổng proxy - ĐÃ ĐỔI SANG CỔNG 1080
+EXPOSE 1080/tcp
 
 # Chỉ định script khởi động mặc định
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
