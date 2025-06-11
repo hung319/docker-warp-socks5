@@ -39,8 +39,8 @@ ADD entrypoint.sh /usr/local/bin/entrypoint.sh
 ADD warp-health-check.sh /usr/local/bin/warp-health-check.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/warp-health-check.sh
 
-# Mở cổng proxy - ĐÃ ĐỔI SANG CỔNG 8888
-EXPOSE 8888
+# Mở cổng proxy - ĐÃ ĐỔI SANG CỔNG 1080
+EXPOSE 1080
 
 # Chỉ định script khởi động mặc định
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
