@@ -4,7 +4,6 @@ FROM alpine:3.19
 # Cài đặt các gói cần thiết và các công cụ từ GitHub trong cùng một layer
 RUN \
     # Bước 1: Cài đặt các gói CƠ BẢN từ repository của Alpine
-    # Xóa 'gost' khỏi đây vì nó không tồn tại
     apk add --no-cache curl jq && \
     \
     # Bước 2: Xác định kiến trúc của hệ thống (amd64, arm64, etc.)
@@ -17,7 +16,8 @@ RUN \
     \
     # Bước 3: Tải và cài đặt wgcf
     echo "Dang tim URL tai ve cho wgcf (kien truc ${ARCH})..." && \
-    WGCF_URL=$(curl -fsSL https://api.github.com/repos/ViRb3/wgcf/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"_linux_${ARCH}\") and (contains(\".zip\") | not)) | head -n 1") && \
+    # SỬA LỖI: Đặt dấu " kết thúc lệnh jq TRƯỚC khi pipe qua head
+    WGCF_URL=$(curl -fsSL https://api.github.com/repos/ViRb3/wgcf/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"_linux_${ARCH}\") and (contains(\".zip\") | not))" | head -n 1) && \
     if [ -z "${WGCF_URL}" ]; then \
         echo "LỖI: Không tìm thấy URL tải về cho wgcf!" >&2; \
         exit 1; \
@@ -39,9 +39,10 @@ RUN \
     curl -fsSL "${WIREPROXY_URL}" | tar -xz -C /usr/bin/ && \
     chmod +x /usr/bin/wireproxy && \
     \
-    # Bước 5: Tải và cài đặt GOST (từ GitHub để đảm bảo hoạt động)
+    # Bước 5: Tải và cài đặt GOST
     echo "Dang tim URL tai ve cho GOST (kien truc ${ARCH})..." && \
-    GOST_URL=$(curl -fsSL https://api.github.com/repos/go-gost/gost/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}.tar.gz\")) | head -n 1") && \
+    # SỬA LỖI: Đặt dấu " kết thúc lệnh jq TRƯỚC khi pipe qua head
+    GOST_URL=$(curl -fsSL https://api.github.com/repos/go-gost/gost/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}.tar.gz\"))" | head -n 1) && \
     if [ -z "${GOST_URL}" ]; then \
         echo "LỖI: Không tìm thấy URL tải về cho GOST!" >&2; \
         exit 1; \
