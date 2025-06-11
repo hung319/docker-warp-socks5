@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# ĐỔI SANG CỔNG 8888
-PROXY_PORT=8888
+# ĐỔI SANG CỔNG 1080
+PROXY_PORT=1080
 PROXY_URL="http://localhost:${PROXY_PORT}"
 
 if [ -n "$SOCKS5_USERNAME" ]; then
