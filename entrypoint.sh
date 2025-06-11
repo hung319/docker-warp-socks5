@@ -33,9 +33,9 @@ INTERNAL_PROXY_URL="socks5://127.0.0.1:${INTERNAL_WIREPROXY_PORT}"
 echo "Đang khởi động GOST proxy trên cổng public ${PUBLIC_PORT}..."
 
 # Thêm xác thực nếu biến môi trường được cung cấp
-if [ -n "$SOCKS5_USERNAME" ] && [ -n "$SOCKS5_PASSWORD" ]; then
+if [ -n "$PROXY_USERNAME" ] && [ -n "$PROXY_PASSWORD" ]; then
     echo "GOST đang chạy với xác thực."
-    gost -L "auto://$SOCKS5_USERNAME:$SOCKS5_PASSWORD@0.0.0.0:${PUBLIC_PORT}" -F "${INTERNAL_PROXY_URL}"
+    gost -L "auto://$PROXY_USERNAME:$PROXY_PASSWORD@0.0.0.0:${PUBLIC_PORT}" -F "${INTERNAL_PROXY_URL}"
 else
     echo "GOST đang chạy không cần xác thực."
     gost -L "auto://0.0.0.0:${PUBLIC_PORT}" -F "${INTERNAL_PROXY_URL}"
