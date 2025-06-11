@@ -27,13 +27,15 @@ RUN \
     \
     # Bước 4: Tải wireproxy từ fork 'whyvl/wireproxy' do bạn chỉ định
     echo "Dang tim URL tai ve cho wireproxy (kien truc ${ARCH})..." && \
-    WIREPROXY_URL=$(curl -fsSL https://api.github.com/repos/whyvl/wireproxy/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}\") and contains(\".tar.gz\"))" | head -n 1) && \
+    # SỬA LỖI #1: Xóa điều kiện 'contains(".tar.gz")' vì repo này cung cấp file binary
+    WIREPROXY_URL=$(curl -fsSL https://api.github.com/repos/whyvl/wireproxy/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}\"))" | head -n 1) && \
     if [ -z "${WIREPROXY_URL}" ]; then \
         echo "LỖI: Không tìm thấy URL tải về cho wireproxy từ fork whyvl!" >&2; \
         exit 1; \
     fi && \
     echo "Dang tai wireproxy tu ${WIREPROXY_URL}" && \
-    curl -fsSL "${WIREPROXY_URL}" | tar -xz -C /usr/bin/ && \
+    # SỬA LỖI #2: Tải file binary trực tiếp, không giải nén tar
+    curl -fsSL "${WIREPROXY_URL}" -o /usr/bin/wireproxy && \
     chmod +x /usr/bin/wireproxy && \
     \
     # Bước 5: Tải và cài đặt GOST
@@ -47,7 +49,7 @@ RUN \
     curl -fsSL "${GOST_URL}" | tar -xz -C /usr/bin/ gost && \
     chmod +x /usr/bin/gost
 
-# Sao chép các script cần thiết vào image (Sửa lại cho nhất quán đường dẫn)
+# Sao chép các script cần thiết vào image
 ADD entrypoint.sh /usr/local/bin/entrypoint.sh
 ADD warp-health-check.sh /usr/local/bin/warp-health-check.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/warp-health-check.sh
@@ -58,6 +60,6 @@ EXPOSE 40000/tcp
 # Chỉ định script khởi động mặc định
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# Cấu hình kiểm tra sức khỏe của container (Sửa lại cho nhất quán đường dẫn)
+# Cấu hình kiểm tra sức khỏe của container
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD [ "/usr/local/bin/warp-health-check.sh" ]
