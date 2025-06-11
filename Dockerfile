@@ -1,47 +1,38 @@
 # Sử dụng base image Alpine Linux 3.19 nhỏ gọn
 FROM alpine:3.19
 
-# Cài đặt các gói cần thiết và các công cụ từ GitHub trong cùng một layer
+# Đặt các phiên bản cố định của công cụ tại đây
+ENV WGCF_VERSION=v2.2.26
+ENV WIREPROXY_VERSION=v1.1.4
+ENV GOST_VERSION=v3.0.0-rc9
+
+# Cài đặt các gói cần thiết và các công cụ từ URL đã chỉ định
 RUN \
-    # Bước 1: Cài đặt các gói CƠ BẢN từ repository của Alpine
-    apk add --no-cache curl jq && \
+    # Bước 1: Cài đặt curl. Không cần jq nữa.
+    apk add --no-cache curl && \
     \
     # Bước 2: Xác định kiến trúc của hệ thống
     ARCH=$(uname -m) && \
     case ${ARCH} in \
         "x86_64") ARCH="amd64" ;; \
         "aarch64") ARCH="arm64" ;; \
-        "i386" | "i686") ARCH="386" ;; \
+        *) echo "LỖI: Kiến trúc ${ARCH} không được hỗ trợ"; exit 1 ;; \
     esac && \
     \
-    # Bước 3: Tải và cài đặt wgcf
-    echo "Dang tim URL tai ve cho wgcf (kien truc ${ARCH})..." && \
-    WGCF_URL=$(curl -fsSL https://api.github.com/repos/ViRb3/wgcf/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"_linux_${ARCH}\") and (contains(\".zip\") | not))" | head -n 1) && \
-    if [ -z "${WGCF_URL}" ]; then echo "LỖI: Không tìm thấy URL tải về cho wgcf!" >&2; exit 1; fi && \
-    echo "Dang tai wgcf tu ${WGCF_URL}" && \
-    curl -fsSL "${WGCF_URL}" -o /usr/bin/wgcf && \
+    # Bước 3: Tải WGCF từ URL cố định
+    echo "Dang tai WGCF phien ban ${WGCF_VERSION}..." && \
+    # Cú pháp ${WGCF_VERSION#v} dùng để xóa chữ 'v' ở đầu (v2.2.26 -> 2.2.26)
+    curl -fsSL "https://github.com/ViRb3/wgcf/releases/download/${WGCF_VERSION}/wgcf_${WGCF_VERSION#v}_linux_${ARCH}" -o /usr/bin/wgcf && \
     chmod +x /usr/bin/wgcf && \
     \
-    # Thêm một khoảng chờ 2 giây để tránh bị giới hạn truy cập API
-    sleep 2 && \
-    \
-    # Bước 4: Tải wireproxy từ fork 'whyvl/wireproxy'
-    echo "Dang tim URL tai ve cho wireproxy (kien truc ${ARCH})..." && \
-    WIREPROXY_URL=$(curl -fsSL https://api.github.com/repos/whyvl/wireproxy/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}\"))" | head -n 1) && \
-    if [ -z "${WIREPROXY_URL}" ]; then echo "LỖI: Không tìm thấy URL tải về cho wireproxy từ fork whyvl!" >&2; exit 1; fi && \
-    echo "Dang tai wireproxy tu ${WIREPROXY_URL}" && \
-    curl -fsSL "${WIREPROXY_URL}" -o /usr/bin/wireproxy && \
+    # Bước 4: Tải WireProxy từ URL cố định
+    echo "Dang tai WireProxy phien ban ${WIREPROXY_VERSION}..." && \
+    curl -fsSL "https://github.com/whyvl/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy-linux-${ARCH}" -o /usr/bin/wireproxy && \
     chmod +x /usr/bin/wireproxy && \
     \
-    # Thêm một khoảng chờ 2 giây nữa
-    sleep 2 && \
-    \
-    # Bước 5: Tải và cài đặt GOST
-    echo "Dang tim URL tai ve cho GOST (kien truc ${ARCH})..." && \
-    GOST_URL=$(curl -fsSL https://api.github.com/repos/go-gost/gost/releases/latest | jq -r ".assets[] | .browser_download_url | select(contains(\"linux-${ARCH}.tar.gz\"))" | head -n 1) && \
-    if [ -z "${GOST_URL}" ]; then echo "LỖI: Không tìm thấy URL tải về cho GOST!" >&2; exit 1; fi && \
-    echo "Dang tai GOST tu ${GOST_URL}" && \
-    curl -fsSL "${GOST_URL}" | tar -xz -C /usr/bin/ gost && \
+    # Bước 5: Tải GOST từ URL cố định
+    echo "Dang tai GOST phien ban ${GOST_VERSION}..." && \
+    curl -fsSL "https://github.com/go-gost/gost/releases/download/${GOST_VERSION}/gost_${GOST_VERSION#v}_linux_${ARCH}.tar.gz" | tar -xz -C /usr/bin/ gost && \
     chmod +x /usr/bin/gost
 
 # Sao chép các script cần thiết vào image
